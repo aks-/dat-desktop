@@ -129,14 +129,10 @@ HeaderElement.prototype.createElement = function (props) {
     `
 }
 
-HeaderElement.prototype.consumeUpdate = function () {
-  if (!this.state.update) {
-    return false
-  }
-  this.state.update = false
-  return true
-}
-
 HeaderElement.prototype.update = function (props) {
-  return props.isReady !== this.props.isReady || this.consumeUpdate()
+  if (this.state.update) {
+    this.state.update = false
+    return true
+  }
+  return props.isReady !== this.props.isReady
 }
