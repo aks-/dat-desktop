@@ -1,6 +1,5 @@
 var Nanocomponent = require('nanocomponent')
 var encoding = require('dat-encoding')
-var bytes = require('prettier-bytes')
 var html = require('choo/html')
 var css = require('sheetify')
 
@@ -8,6 +7,7 @@ var TitleField = require('./table-title-field')
 var button = require('./button')
 var status = require('./status')
 var icon = require('./icon')
+var { datSize, datPeers, datState } = require('../lib/datInfo')
 
 var cellStyles = css`
   :host {
@@ -139,17 +139,6 @@ Row.prototype.createElement = function (props) {
   var styles = cellStyles
   if (highlight) styles += ' fade-highlight'
 
-  stats.size = dat.archive.content
-    ? bytes(dat.archive.content.byteLength)
-    : 'N/A'
-  stats.state = !dat.network
-    ? 'paused'
-    : dat.writable || dat.progress === 1
-    ? 'complete'
-    : peers
-    ? 'loading'
-    : 'stale'
-
   function onclick () {
     emit('dats:inspect', dat)
   }
@@ -173,14 +162,15 @@ Row.prototype.createElement = function (props) {
           </div>
         </td>
         <td class="cell-3">
-          ${status(dat, stats)}
+          ${status(dat)}
         </td>
         <td class="f6 f5-l cell-4 size">
-          ${stats.size}
+          ${datSize(dat)}
         </td>
         <td class="cell-5 ${networkStyles}">
           ${networkIcon.render({ dat, emit })}
           <span class="network v-top f6 f5-l ml1">${peers}</span>
+          <span class="network v-top f6 f5-l ml1">${datPeers(dat)}</span>
         </td>
         <td class="cell-6">
           <div class="flex justify-end ${iconStyles}">
@@ -312,7 +302,7 @@ function HexContent () {
 HexContent.prototype = Object.create(Nanocomponent.prototype)
 
 HexContent.prototype.createElement = function (props) {
-  var state = this.state.state = props.stats.state
+  var state = this.state.state = datState(props.dat)
   var { emit, dat } = props
 
   var self = this
@@ -373,8 +363,8 @@ HexContent.prototype.createElement = function (props) {
   }
 }
 
-HexContent.prototype.update = function ({ dat, stats, emit }) {
-  return stats.state !== this.state.state ||
+HexContent.prototype.update = function ({ dat, emit }) {
+  return datState(dat) !== this.state.state ||
     typeof this.state.setHover === 'boolean'
 }
 
