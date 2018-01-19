@@ -120,7 +120,7 @@ TitleField.prototype.renderInactive = function () {
 TitleField.prototype.renderActive = function () {
   var self = this
   setTimeout(function () {
-    var input = self._element.querySelector('input')
+    var input = self.element.querySelector('input')
     input.focus()
     input.select()
   }, 0)
@@ -150,7 +150,7 @@ TitleField.prototype.renderActive = function () {
       e.preventDefault()
       handleSave()
     } else if (oldValue !== newValue) {
-      nanomorph(self._element.querySelector('button'), renderButton())
+      nanomorph(self.element.querySelector('button'), renderButton())
     }
   }
 
