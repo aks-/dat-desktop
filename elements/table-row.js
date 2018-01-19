@@ -118,41 +118,44 @@ module.exports = Row
 function Row () {
   if (!(this instanceof Row)) return new Row()
   Nanocomponent.call(this)
+
+  this.parts = {
+    hexContent: HexContent(),
+    finderButton: FinderButton(),
+    linkButton: LinkButton(),
+    deleteButton: DeleteButton(),
+    titleField: TitleField(),
+    networkIcon: NetworkIcon()
+  }
 }
 
 Row.prototype = Object.create(Nanocomponent.prototype)
 
 Row.prototype.createElement = function (props) {
-  var hexContent = HexContent()
-  var finderButton = FinderButton()
-  var linkButton = LinkButton()
-  var deleteButton = DeleteButton()
-  var titleField = TitleField()
-  var networkIcon = NetworkIcon()
+  var { dat, emit, highlight } = props
+  var parts = this.parts
+  if (dat instanceof Error) return errorRow(dat, emit, parts.deleteButton)
 
-  var { dat, state, emit, highlight } = props
-  if (dat instanceof Error) return errorRow(dat, emit, deleteButton)
-
-  var stats = dat.stats
-  var peers = dat.network ? dat.network.connected : 'N/A'
   var key = encoding.encode(dat.key)
   var styles = cellStyles
   if (highlight) styles += ' fade-highlight'
 
   function onclick () {
-    emit('dats:inspect', dat)
+    if (!parts.titleField.state.isEditing) {
+      emit('dats:inspect', dat)
+    }
   }
 
   return html`
       <tr id=${key} class=${styles} onclick=${onclick}>
         <td class="cell-1">
           <div class="w2 center">
-            ${hexContent.createElement({ dat, stats, emit })}
+            ${parts.hexContent.render(props)}
           </div>
         </td>
         <td class="cell-2">
           <div class="cell-truncate">
-            ${titleField.render({ dat, state, emit })}
+            ${parts.titleField.render(props)}
             <p class="f7 f6-l color-neutral-60 truncate">
               <span class="author">${dat.metadata.author || 'Anonymous'} • </span>
               <span class="title">
@@ -168,23 +171,22 @@ Row.prototype.createElement = function (props) {
           ${datSize(dat)}
         </td>
         <td class="cell-5 ${networkStyles}">
-          ${networkIcon.render({ dat, emit })}
-          <span class="network v-top f6 f5-l ml1">${peers}</span>
+          ${parts.networkIcon.render(props)}
           <span class="network v-top f6 f5-l ml1">${datPeers(dat)}</span>
         </td>
         <td class="cell-6">
           <div class="flex justify-end ${iconStyles}">
-            ${finderButton.createElement({ dat, emit })}
-            ${linkButton.createElement({ dat, emit })}
-            ${deleteButton.createElement({ dat, emit })}
+            ${parts.finderButton.render(props)}
+            ${parts.linkButton.render(props)}
+            ${parts.deleteButton.render(props)}
           </div>
         </td>
       </tr>
     `
 }
 
-Row.prototype.update = function () {
-  return false
+Row.prototype.update = function (props) {
+  return Object.values(this.parts).find(component => component.update(props, true)) !== undefined
 }
 
 function FinderButton () {
@@ -345,7 +347,7 @@ HexContent.prototype.createElement = function (props) {
       onclick: togglePause,
       onmouseover: ev => {
         this.state.setHover = true
-        this.render(this.props)
+        emit('render')
       }
     })
   } else {

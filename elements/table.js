@@ -78,12 +78,12 @@ function TableRows () {
       var row = elements[key]
       usedKeys.push(key)
       if (row) {
-        return row.createElement({ dat, state, emit })
+        return row.render({ dat, state, emit })
       } else {
         var highlight = !initialLoad
         var newRow = TableRow()
         elements[key] = newRow
-        return newRow.createElement({ dat, state, emit, highlight })
+        return newRow.render({ dat, state, emit, highlight })
       }
     })
 
