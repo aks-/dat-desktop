@@ -309,17 +309,18 @@ HexContent.prototype.createElement = function (props) {
 
   var self = this
   function onmousemove (ev) {
-    if (!self.state.hover) return
-    if (self.createElement(props).contains(ev.target)) return
-    self.state.setHover = false
-    document.body.removeEventListener('mousemove', onmousemove)
-    self.createElement(props)
+    if (!self.element.contains(ev.target)) {
+      self.state.hover = false
+      self.state.update = true
+      self.state.listening = false
+      document.body.removeEventListener('mousemove', onmousemove)
+      emit('render')
+    }
   }
 
-  if (typeof this.state.setHover === 'boolean') {
-    if (this.state.setHover) document.body.addEventListener('mousemove', onmousemove)
-    this.state.hover = this.state.setHover
-    this.state.setHover = null
+  if (this.state.hover && !this.state.listening) {
+    document.body.addEventListener('mousemove', onmousemove)
+    this.state.listening = true
   }
 
   if (this.state.hover) {
@@ -346,7 +347,8 @@ HexContent.prototype.createElement = function (props) {
       class: 'color-green hover-color-green-hover ph0',
       onclick: togglePause,
       onmouseover: ev => {
-        this.state.setHover = true
+        this.state.hover = true
+        this.state.update = true
         emit('render')
       }
     })
@@ -365,9 +367,22 @@ HexContent.prototype.createElement = function (props) {
   }
 }
 
-HexContent.prototype.update = function ({ dat, emit }) {
-  return datState(dat) !== this.state.state ||
-    typeof this.state.setHover === 'boolean'
+HexContent.prototype.update = function ({ dat, emit }, external) {
+  if (this.state.update) {
+    if (!external) {
+      // `.update` is usually called (and part of) the `.render` method
+      // meaning that setting "state.update" once will result in exactly
+      // one rendering. However, since the table-row is a complex component
+      // and the table row uses `.update` to see if any of the child
+      // components would need an update. If the call comes from
+      // the parent (or externally) we do not reset the update property
+      // to make sure that `.state.update` stays true until actually
+      // rendering the component
+      this.state.update = false
+    }
+    return true
+  }
+  return datState(dat) !== this.state.state
 }
 
 function errorRow (err, emit, deleteButton) {
