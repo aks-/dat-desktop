@@ -9,7 +9,8 @@
   "scripts": {
     "start": "electron .",
     "test": "prettier-standard 'app/**/*.js' 'tests/**/*.js' 'lib/**/*.js' && standard",
-    "watch": "webpack --watch"
+    "watch": "webpack --watch",
+    "unit-tests": "NODE_ENV=test babel-tape-runner unit-tests/*.js"
   },
   "devDependencies": {
     "babel-core": "^6.26.0",
@@ -17,9 +18,13 @@
     "babel-plugin-transform-object-rest-spread": "^6.26.0",
     "babel-preset-env": "^1.6.1",
     "babel-preset-react": "^6.24.1",
+    "babel-tape-runner": "^2.0.1",
     "electron": "^1.7.10",
+    "enzyme": "^3.3.0",
+    "enzyme-adapter-react-16": "^1.1.1",
     "prettier-standard": "^8.0.0",
     "standard": "^10.0.3",
+    "tape": "^4.9.0",
     "webpack": "^3.10.0",
     "webpack-node-externals": "^1.6.0"
   },
